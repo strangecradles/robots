@@ -1,0 +1,23 @@
+[project]
+name = "gaze-attention-teleop"
+version = "0.1.0"
+description = "MuJoCo teleoperation rig with time-synchronized physiological recording for extracting a temporal attention scalar a(t) from SLO fixational dynamics and pupil, validating it against task events, and injecting it into robot learning."
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "mujoco>=3.2",
+    "numpy>=1.26",
+    "pygame>=2.6",
+    "opencv-python>=4.10",
+    "pandas>=2.2",
+    "pyarrow>=17.0",
+    "scipy>=1.13",
+    "matplotlib>=3.9",
+]
+
+[project.optional-dependencies]
+policy = [
+    "torch>=2.4",
+]
+
+[tool.uv]
+package = false

@@ -1,0 +1,12 @@
+# Core (mirror of pyproject dependencies; prefer `uv sync` which uses pyproject)
+mujoco>=3.2
+numpy>=1.26
+pygame>=2.6
+opencv-python>=4.10
+pandas>=2.2
+pyarrow>=17.0
+scipy>=1.13
+matplotlib>=3.9
+
+# Optional: attention-weighted behavioral cloning (Phase C)
+# torch>=2.4
