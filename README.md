@@ -37,9 +37,16 @@ See `data/sessions/<id>/derived/validity.png` for the deliverable plot.
 
 ```bash
 uv venv --python 3.13
-uv sync                 # core deps
-uv sync --extra policy  # + torch, for Phase C behavioral cloning
+uv sync                     # core deps
+uv sync --extra policy      # + torch, for Phase C behavioral cloning
+uv sync --extra spacemouse  # + pyspacemouse/hidapi, for SpaceMouse teleop
 ```
+
+The SpaceMouse path reads the device over **raw HID** (`pyspacemouse`), so on
+macOS it also needs the native lib (`brew install hidapi`) and the host app
+(Terminal/Cursor) granted **Input Monitoring**. It does *not* use 3Dconnexion's
+official driver -- if that driver is installed its daemon seizes the device, so
+quit it (`pkill -f 3Dconnexion`) or uninstall it.
 
 The Franka Panda model is vendored under `assets/franka_emika_panda/`
 (from [mujoco_menagerie](https://github.com/google-deepmind/mujoco_menagerie),
@@ -70,11 +77,25 @@ events, confirming the math before real exports exist.
 ```bash
 # headset as macOS display index 1; 9-point gaze calibration first
 PYTHONPATH=. .venv/bin/python teleop/run_session.py --display 1 --calibrate
+
+# drive the arm with a 3Dconnexion SpaceMouse (keyboard stays active too)
+PYTHONPATH=. .venv/bin/python teleop/run_session.py --device spacemouse
 ```
 
 Keys: `WASD` move (x/y), `R/F` up/down, `Q/E` yaw, `SPACE` gripper,
 `N` reset episode, `M` manual marker, `P` pause, `ESC` end (plays the end
 sync burst -- **let it finish** so the clocks can be drift-fit).
+
+**SpaceMouse** (`--device spacemouse`): push/twist the puck for 6-DoF
+end-effector motion in the same egocentric view frame as the keys; buttons
+toggle gripper / reset episode (`--sm-gripper-button` / `--sm-reset-button`,
+`--sm-invert x,y,z,yaw` to flip an axis). The keyboard remains live as a
+fallback. Run `PYTHONPATH=. .venv/bin/python teleop/spacemouse.py` to live-test
+axes and discover button indices.
+
+The display viewpoint defaults to an elevated 3/4 spectator view (`--camera
+side`) with a clear sightline to the cube and bin throughout the task; pass
+`--camera ego` for the over-the-shoulder egocentric view used for gaze geometry.
 
 Then export the SLO and pupil recordings, point the adapters at them, and run
 the same offline pipeline:
@@ -104,6 +125,7 @@ maps every stream onto the master clock first.
 |------|------|
 | `teleop/env.py` | Franka + cube + bin, diff-IK from a 6-DoF target, auto event detection |
 | `teleop/display.py` | headset display output, keyboard teleop, luminance |
+| `teleop/spacemouse.py` | 3Dconnexion SpaceMouse 6-DoF teleop (raw HID, keyboard fallback) |
 | `teleop/sync.py` | photic-flash + saccade-cue anchor scheduler |
 | `teleop/calibrate.py` | 9-point gaze calibration (display + offline fit) |
 | `teleop/run_session.py` | **master loop** (owns the clock) |

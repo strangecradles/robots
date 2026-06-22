@@ -22,19 +22,33 @@
     <light pos="0.4 0 1.6" dir="0 0 -1" directional="true"/>
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
 
-    <!-- Operator camera: this exact view is rendered to the headset display.
-         Side view: screen-right is world +x, screen-up (in plane) is world +y. -->
-    <camera name="teleop_cam" pos="0.45 -0.95 0.7" xyaxes="1 0 0 0 0.4281 0.9037" fovy="50"/>
+    <!-- Operator cameras: the selected one is rendered to the headset display.
 
-    <!-- Graspable cube (half-size 0.02 m fits the 0.08 m gripper stroke). -->
-    <body name="cube" pos="0.55 -0.1 0.02">
+         teleop_cam ("side"): elevated 3/4 spectator view aimed at the workspace
+         center. Sits in front-left and looks down ~35 deg so the table layout
+         (cube + open bin) reads clearly and the arm sweeps in from the side
+         WITHOUT occluding the cube as the gripper descends -- you can follow
+         the whole grasp/transport/place sequence.
+         ego_cam ("ego"): egocentric -- eye position of a human whose right
+         shoulder is the Franka base (head above/behind the base, offset to
+         the left), so the arm enters the view lower-right like one's own
+         arm and gaze geometry matches natural eye-hand coordination.
+         ego fovy stays 50 to match DEG_PER_YNORM / FOVY_DEG constants. -->
+    <camera name="teleop_cam" pos="-0.01 -1.0 0.84" mode="targetbody" target="ws_center" fovy="52"/>
+    <body name="ws_center" pos="0.5 -0.12 0.12"/>
+    <camera name="ego_cam" pos="-0.12 -0.32 0.92" mode="targetbody" target="ws_center" fovy="50"/>
+
+    <!-- Graspable cube (half-size 0.02 m fits the 0.08 m gripper stroke).
+         Workspace lives in the -y ("dominant hand") hemifield so the ego
+         camera's sightlines clear the arm column. -->
+    <body name="cube" pos="0.55 -0.13 0.02">
       <freejoint name="cube_freejoint"/>
       <geom name="cube_geom" type="box" size="0.02 0.02 0.02" material="cube_mat"
         condim="4" friction="1 0.02 0.0005" solimp="0.95 0.99 0.001" solref="0.004 1" mass="0.05"/>
     </body>
 
     <!-- Drop bin: static open-top box. -->
-    <body name="bin" pos="0.45 0.28 0">
+    <body name="bin" pos="0.42 -0.3 0">
       <geom name="bin_base" type="box" size="0.06 0.06 0.004" pos="0 0 0.004" material="bin_mat"/>
       <geom name="bin_wall_xp" type="box" size="0.004 0.06 0.025" pos="0.064 0 0.025" material="bin_mat"/>
       <geom name="bin_wall_xn" type="box" size="0.004 0.06 0.025" pos="-0.064 0 0.025" material="bin_mat"/>
@@ -51,7 +65,7 @@
 
   <keyframe>
     <key name="home"
-      qpos="0 0 0 -1.57079 0 1.57079 -0.7853 0.04 0.04 0.55 -0.1 0.02 1 0 0 0"
+      qpos="0 0 0 -1.57079 0 1.57079 -0.7853 0.04 0.04 0.55 -0.13 0.02 1 0 0 0"
       ctrl="0 0 0 -1.57079 0 1.57079 -0.7853 255"/>
   </keyframe>
 </mujoco>

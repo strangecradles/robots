@@ -21,7 +21,7 @@ all_events += goto(env, cube + [0, 0, 0.12], close=False, n=60)   # above cube
 all_events += goto(env, cube + [0, 0, 0.005], close=False, n=60)  # descend
 all_events += goto(env, cube + [0, 0, 0.005], close=True, n=25)   # grasp
 all_events += goto(env, cube + [0, 0, 0.20], close=True, n=70)    # lift
-bin_xy = [0.45, 0.28]
+bin_xy = [0.42, -0.3]
 all_events += goto(env, [bin_xy[0], bin_xy[1], 0.20], close=True, n=90)  # transit
 all_events += goto(env, [bin_xy[0], bin_xy[1], 0.10], close=True, n=50)  # descend bin
 all_events += goto(env, [bin_xy[0], bin_xy[1], 0.10], close=False, n=40) # release

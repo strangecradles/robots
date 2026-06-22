@@ -10,3 +10,8 @@ matplotlib>=3.9
 
 # Optional: attention-weighted behavioral cloning (Phase C)
 # torch>=2.4
+
+# Optional: 3Dconnexion SpaceMouse teleop (USB or Bluetooth, e.g. Pro Wireless).
+# Talks raw HID via hidapi so the Bluetooth link works on macOS/Linux/Windows.
+# pyspacemouse>=2.0
+# hidapi>=0.14

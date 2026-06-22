@@ -96,7 +96,7 @@ def run(session_dir: str | Path, pupil_path: str | Path | None = None,
     gy = np.interp(grid_t, gaze["t_master"], gaze["y_norm"])
     m = (grid_t >= teleop_frames["t_master"].min()) & \
         (grid_t <= teleop_frames["t_master"].max())
-    env = TeleopEnv()
+    env = TeleopEnv(camera=meta.get("camera", "teleop_cam"))
     gaze_obj = label_gaze_frames(env, teleop_frames, grid_t[m],
                                  np.stack([gx[m], gy[m]], axis=1), aspect)
     print("[raycast] attended objects:",

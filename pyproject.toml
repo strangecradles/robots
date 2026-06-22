@@ -18,6 +18,12 @@ dependencies = [
 policy = [
     "torch>=2.4",
 ]
+# 3Dconnexion SpaceMouse teleop (USB or Bluetooth). pyspacemouse talks raw HID
+# via hidapi, so it works over the Pro Wireless Bluetooth link on macOS.
+spacemouse = [
+    "pyspacemouse>=2.0",
+    "hidapi>=0.14",
+]
 
 [tool.uv]
 package = false

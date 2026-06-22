@@ -20,12 +20,12 @@ ASSETS_DIR = Path(__file__).resolve().parent.parent / "assets"
 SCENE_XML = ASSETS_DIR / "franka_emika_panda" / "scene_teleop.xml"
 
 # Workspace clamp for the commanded target (meters, world frame).
-WORKSPACE_LO = np.array([0.20, -0.35, 0.012])
-WORKSPACE_HI = np.array([0.70, 0.45, 0.60])
+WORKSPACE_LO = np.array([0.20, -0.45, 0.012])
+WORKSPACE_HI = np.array([0.70, 0.30, 0.60])
 
 CUBE_HALF = 0.02
 LIFT_Z = 0.07          # cube counts as lifted above this height
-BIN_CENTER = np.array([0.45, 0.28])
+BIN_CENTER = np.array([0.42, -0.3])
 BIN_HALF = 0.06        # inner half-extent of the bin base
 
 
@@ -39,7 +39,8 @@ class TeleopCommand:
 
 
 class TeleopEnv:
-    def __init__(self, xml_path: str | Path = SCENE_XML, control_hz: float = 50.0):
+    def __init__(self, xml_path: str | Path = SCENE_XML, control_hz: float = 50.0,
+                 camera: str = "teleop_cam"):
         self.xml_path = str(xml_path)
         self.model = mujoco.MjModel.from_xml_path(str(xml_path))
         self.data = mujoco.MjData(self.model)
@@ -47,7 +48,8 @@ class TeleopEnv:
         self.n_substeps = max(1, round(1.0 / control_hz / self.model.opt.timestep))
 
         self.ee_site = self.model.site("ee_site").id
-        self.cam_id = self.model.camera("teleop_cam").id
+        self.camera_name = camera
+        self.cam_id = self.model.camera(camera).id
         self.cube_body = self.model.body("cube").id
         self.cube_geom = self.model.geom("cube_geom").id
         self.cube_jnt_qposadr = self.model.joint("cube_freejoint").qposadr[0]
@@ -83,7 +85,7 @@ class TeleopEnv:
         if randomize:
             adr = self.cube_jnt_qposadr
             self.data.qpos[adr + 0] = 0.55 + self._rng.uniform(-0.06, 0.06)
-            self.data.qpos[adr + 1] = -0.10 + self._rng.uniform(-0.08, 0.08)
+            self.data.qpos[adr + 1] = -0.13 + self._rng.uniform(-0.08, 0.08)
         mujoco.mj_forward(self.model, self.data)
 
         # Target starts at the current end-effector pose, top-down orientation.
@@ -237,6 +239,26 @@ class TeleopEnv:
                 events.append("place_success")
 
         return events
+
+    # ------------------------------------------------------------ view frame
+
+    def view_basis(self) -> tuple[np.ndarray, np.ndarray]:
+        """Horizontal (forward, right) unit vectors of the display camera.
+
+        Used to map operator intent ("away from me" / "to my right") into
+        world-frame velocities so the controls stay egocentric no matter
+        where the camera is. Vertical motion stays world-z.
+        """
+        rot = self.data.cam_xmat[self.cam_id].reshape(3, 3)
+        fwd = -rot[:, 2]    # camera looks along -z
+        right = rot[:, 0]
+        fwd_h = np.array([fwd[0], fwd[1], 0.0])
+        right_h = np.array([right[0], right[1], 0.0])
+        n_f = np.linalg.norm(fwd_h)
+        n_r = np.linalg.norm(right_h)
+        if n_f < 1e-6 or n_r < 1e-6:   # degenerate (camera looking straight down)
+            return np.array([0.0, 1.0, 0.0]), np.array([1.0, 0.0, 0.0])
+        return fwd_h / n_f, right_h / n_r
 
     # --------------------------------------------------------------- logging
 

@@ -111,9 +111,13 @@ class InputState:
 class KeyboardTeleop:
     """Maps held keys to continuous EE velocities and edge keys to events.
 
-    Held:  W/S = away/toward (world +y/-y) | A/D = left/right (world -x/+x)
-           R/F = up/down (world +z/-z)     | Q/E = yaw ccw/cw
-           LSHIFT = 2x speed
+    The emitted lin_vel is in VIEW coordinates: x = "to my right",
+    y = "away from me", z = up. The session loop rotates it into the world
+    frame via TeleopEnv.view_basis(), so the controls feel egocentric for
+    any display camera.
+
+    Held:  W/S = away/toward | A/D = left/right | R/F = up/down
+           Q/E = yaw ccw/cw  | LSHIFT = 2x speed
     Edge:  SPACE = toggle gripper | N = reset episode | M = manual marker
            P = pause physics      | ESC = quit
     """

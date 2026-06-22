@@ -33,7 +33,7 @@ import numpy as np
 import pandas as pd
 
 from analysis.raycast import world_to_pixel
-from teleop.env import TeleopEnv
+from teleop.env import BIN_CENTER, TeleopEnv
 
 SLO_HZ = 480.0
 PUPIL_HZ = 120.0
@@ -83,7 +83,8 @@ def _gaze_targets(frames: pd.DataFrame, events: list[dict], t: np.ndarray,
 
     cube_px = np.array([world_to_pixel(env, p, aspect) for p in
                         f[["cube_x", "cube_y", "cube_z"]].to_numpy()])
-    bin_px = np.array(world_to_pixel(env, np.array([0.45, 0.28, 0.03]), aspect))
+    bin_px = np.array(world_to_pixel(
+        env, np.array([BIN_CENTER[0], BIN_CENTER[1], 0.03]), aspect))
 
     targets = np.where(f["grasped"].to_numpy(dtype=bool)[:, None],
                        np.broadcast_to(bin_px, cube_px.shape), cube_px)
@@ -188,7 +189,9 @@ def generate(session_dir: str | Path, seed: int = 7) -> Path:
     w, h = meta.get("render_size", [960, 720])
     aspect = w / h
 
-    env = TeleopEnv()  # only used for the fixed-camera projection
+    # Only used for the display-camera projection; must match the camera
+    # the session was displayed/recorded with.
+    env = TeleopEnv(camera=meta.get("camera", "teleop_cam"))
     import mujoco
     mujoco.mj_forward(env.model, env.data)
 
